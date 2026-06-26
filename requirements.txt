@@ -1,0 +1,28 @@
+# ── Python 版本要求：3.10 及以上 ──────────────────────────
+# （代码使用了 X | Y 联合类型语法，3.10 以下会报 SyntaxError）
+
+# ── 外部工具（需单独安装，不通过 pip）─────────────────────
+# ffmpeg  — 视频缩略图生成 + bestvideo+bestaudio 格式合并
+#            Windows 推荐用 winget: winget install ffmpeg
+#            或下载二进制放到 PATH: https://ffmpeg.org/download.html
+
+# ── Python 依赖 ────────────────────────────────────────────
+
+# YouTube - InnerTube API（无需 API Key）
+tubescrape>=0.1.0
+
+# ニコニコ動画 - Snapshot Search API v2
+nicovideo-api-client>=1.1.0
+
+# Backend
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Video download
+yt-dlp>=2024.0.0
+
+# Desktop app (Windows)
+pywebview>=5.0

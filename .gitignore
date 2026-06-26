@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Vendored ffmpeg binaries (~168MB) — shipped inside release builds, not source.
+# To build locally, place ffmpeg/ffprobe + their DLLs here (see README).
+vendor_ffmpeg/
+
+# Release artifacts produced by scripts/release.py
+HeatMap-v*.zip
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Downloads / media
+downloads/
+thumbnails/
+
+# Cookies (sensitive)
+cookies.txt
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Virtual env
+venv/
+.venv/
+env/

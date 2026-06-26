@@ -1,0 +1,10 @@
+# Normalize line endings: store text as LF in the repo, check out native.
+* text=auto
+
+# Binaries that must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.ico binary
+*.zip binary
+*.dll binary
+*.exe binary
