@@ -194,8 +194,9 @@ _SG_OFFICIAL = [
     # central bank / exchange (trusted, no filter)
     {"name": "Monetary Authority of Singapore", "channel_id": "UC4EZ3SeI-rKff-TCXuFqxCg"},
     {"name": "SGX Group",                       "channel_id": "UCaurkyabSDD8bgrSqUyVhyg"},
-    # finance media (trusted)
-    {"name": "The Business Times",              "channel_id": "UC0GP1HDhGZTLih7B89z_cTg"},
+    # finance media — BT is a finance daily but its YouTube feed mixes in general
+    # news (earthquakes, politics), so filter to finance titles/descriptions.
+    {"name": "The Business Times",              "channel_id": "UC0GP1HDhGZTLih7B89z_cTg", "filter": True},
     # general news (needs finance keyword filter)
     {"name": "CNA",                             "channel_id": "UC83jt4dlz1Gjl58fzQrrKZg", "filter": True},
 ]

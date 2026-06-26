@@ -244,6 +244,27 @@ def get_available_dates(region: str, platform: str) -> list[str]:
         return []
 
 
+def latest_scraped_date(region: str, platform: str = "youtube") -> Optional[str]:
+    """Most recent ``scraped_date`` for a region+platform across all windows.
+
+    Used to decide whether a region already has fresh data (so the app can skip
+    re-scraping it on every switch). ``None`` when the region has no data yet.
+    """
+    SessionLocal = get_session()
+    try:
+        with SessionLocal() as session:
+            stmt = (
+                select(Video.scraped_date)
+                .where(Video.region == region, Video.platform == platform)
+                .order_by(Video.scraped_date.desc())
+                .limit(1)
+            )
+            return session.execute(stmt).scalar_one_or_none()
+    except SQLAlchemyError as e:
+        logger.error("latest_scraped_date(%s, %s): %s", region, platform, e)
+        return None
+
+
 def _row_to_dict(row: Video) -> dict:
     """Convert an ORM ``Video`` row to a plain dictionary for JSON serialisation."""
     return {

@@ -5,6 +5,8 @@ const PHASE = { scraping: '采集', dedup: '去重', saving: '入库', done: '�
 const SHORT = { youtube: 'YouTube', official: '官方', niconico: 'ニコ' };
 
 function ScrapeChip({ scrape }) {
+  const region = REGIONS.find((r) => r.id === scrape.region);
+  const rname = region ? `${region.flag}${region.name}` : '';
   const parts = Object.keys(scrape.platforms).map((p) => {
     const ev = scrape.platforms[p];
     const n = ev.unique != null ? `(${ev.unique})` : ev.raw != null ? `(${ev.raw})` : '';
@@ -13,7 +15,7 @@ function ScrapeChip({ scrape }) {
   return html`
     <div class="scrape-chip">
       <span class="dot"></span>
-      采集中${parts.length ? html` <b>${parts.join(' · ')}</b>` : ''}
+      采集中${rname ? html` ${rname}` : ''}${parts.length ? html` <b>${parts.join(' · ')}</b>` : ''}
     </div>`;
 }
 

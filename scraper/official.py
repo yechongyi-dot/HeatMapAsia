@@ -16,6 +16,7 @@ dropping off-topic posts from broad news channels (e.g. Reuters war coverage).
 from __future__ import annotations
 
 import logging
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -44,12 +45,20 @@ def _parse_feed(name: str, channel_id: str, region: str, needs_filter: bool = Fa
     *needs_filter* applies the finance keyword check (used for broad-news
     channels); trusted official sources keep everything.
     """
-    try:
-        with urllib.request.urlopen(_FEED.format(channel_id), timeout=15) as r:
-            root = ET.fromstring(r.read())
-    except Exception as e:
-        logger.warning("official RSS fetch failed for %s: %s", name, e)
-        return []
+    # YouTube's RSS endpoint occasionally returns a transient 404/timeout under
+    # load, so retry a couple of times before giving up on the channel.
+    root = None
+    for attempt in range(1, 4):
+        try:
+            with urllib.request.urlopen(_FEED.format(channel_id), timeout=15) as r:
+                root = ET.fromstring(r.read())
+            break
+        except Exception as e:
+            if attempt < 3:
+                time.sleep(1.5 * attempt)
+            else:
+                logger.warning("official RSS fetch failed for %s after 3 tries: %s", name, e)
+                return []
 
     chan_name = _text(root.find("a:author/a:name", _NS)) or name
     chan_url = _text(root.find("a:author/a:uri", _NS))

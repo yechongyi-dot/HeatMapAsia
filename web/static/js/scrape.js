@@ -1,8 +1,8 @@
 import { createStore, useStore } from './store.js';
 import { api } from './api.js';
 
-// platforms: { youtube: {phase, raw, unique}, niconico: {...} }
-const store = createStore({ running: false, platforms: {} });
+// platforms: { youtube: {phase, raw, unique}, niconico: {...} }, region: active scrape's region
+const store = createStore({ running: false, platforms: {}, region: null });
 let pollTimer = null;
 
 export function useScrape() { return useStore(store); }
@@ -42,7 +42,7 @@ function listen(jobId, onDone) {
 
 export async function startScrape(region, onDone) {
   if (store.get().running) return;
-  store.set({ running: true, platforms: {} });
+  store.set({ running: true, platforms: {}, region: region || 'jp' });
   try {
     const { job_id } = await api.post(`/api/scrape/start?region=${region || 'jp'}`, {});
     listen(job_id, onDone);
@@ -52,11 +52,22 @@ export async function startScrape(region, onDone) {
   }
 }
 
-// Switch to a region: attach to an in-flight scrape, else kick one off for it.
+// Ensure a region has data, smartly:
+//   • already scraped today → show instantly, no network scrape
+//   • another region is scraping → wait for it, then scrape this one (relay)
+//   • otherwise → scrape it now
+// Manual refresh (startScrape) always forces a fresh scrape regardless.
 export async function autoScrape(region, onDone) {
   try {
-    const s = await api.get('/api/scrape/status');
-    if (s.running) { store.set({ running: true }); pollStatus(onDone); return; }
+    const c = await api.get(`/api/scrape/check?region=${region}`);
+    if (c.fresh) { onDone && onDone({ ok: true, fresh: true }); return; }
+    if (c.running) {
+      // A different region is mid-scrape (single global lock). Wait it out,
+      // then re-evaluate this region so it isn't silently skipped.
+      store.set({ running: true });
+      pollStatus(() => autoScrape(region, onDone));
+      return;
+    }
   } catch {}
   startScrape(region, onDone);
 }

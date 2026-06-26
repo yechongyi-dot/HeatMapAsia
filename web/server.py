@@ -11,6 +11,7 @@ import logging
 import queue
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -387,10 +388,26 @@ def api_generate_thumbs_batch():
 
 
 # ── Scrape endpoint ──────────────────────────────────
+_JST = timezone(timedelta(hours=9))
+
+
 @app.get("/api/scrape/status")
 def api_scrape_status():
     """Check if scraping is in progress."""
     return {"running": _scrape_running}
+
+
+@app.get("/api/scrape/check")
+def api_scrape_check(region: str = Query("jp", pattern=_REGION_RE)):
+    """Tell the frontend whether a region needs scraping.
+
+    ``fresh`` is True when this region already has data scraped *today* (JST),
+    so the UI can show it instantly instead of re-running a full network scrape
+    on every region switch.
+    """
+    today = datetime.now(_JST).strftime("%Y-%m-%d")
+    latest = store.latest_scraped_date(region, "youtube")
+    return {"running": _scrape_running, "fresh": latest == today, "latest": latest}
 
 
 _REGION_NAMES = {"jp": "日本", "kr": "韩国", "sg": "新加坡"}
