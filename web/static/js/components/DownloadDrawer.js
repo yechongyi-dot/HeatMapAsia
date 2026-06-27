@@ -37,10 +37,12 @@ export function DownloadDrawer() {
             <div class=${'dl-ic ' + it.status}>${ICON[it.status]}</div>
             <div class="dl-mid">
               <div class=${'dl-name ' + it.status}>${(it.title || '').substring(0, 60)}</div>
-              <div class="dl-bar-wrap">
-                <div class=${'dl-bar' + (it.status === 'done' ? ' done' : (it.status === 'fail' || it.status === 'cancel') ? ' fail' : '')}
-                     style=${'width:' + it.pct + '%'}></div>
-              </div>
+              ${it.status === 'fail' && it.error
+                ? html`<div class="dl-err" title=${it.error}>${String(it.error).substring(0, 90)}</div>`
+                : html`<div class="dl-bar-wrap">
+                    <div class=${'dl-bar' + (it.status === 'done' ? ' done' : (it.status === 'fail' || it.status === 'cancel') ? ' fail' : '')}
+                         style=${'width:' + it.pct + '%'}></div>
+                  </div>`}
             </div>
             <div class="dl-right">${right(it)}</div>
           </div>`)}

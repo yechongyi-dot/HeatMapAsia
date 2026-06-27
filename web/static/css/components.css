@@ -397,6 +397,10 @@
 .dl-name.done { color: var(--tx); }
 .dl-name.fail { color: var(--red); text-decoration: line-through; }
 .dl-name.cancel { color: var(--mute); text-decoration: line-through; }
+.dl-err {
+  font-size: 11px; color: var(--red); opacity: .85;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .dl-bar-wrap { height: 3px; background: var(--bd); border-radius: 2px; overflow: hidden; }
 .dl-bar { height: 100%; border-radius: 2px; width: 0; background: var(--blue); transition: width .3s ease-out; }
 .dl-bar.done { background: var(--green); width: 100% !important; }

@@ -668,12 +668,21 @@ def start_download_job(items: list[dict], format_key: str) -> str:
                        "pct": round(pct, 1), "speed": (d.get("_speed_str") or "").strip(),
                        "eta": (d.get("_eta_str") or "").strip()})
 
-        r = download_single(
-            video_id=item["video_id"], platform=item["platform"],
-            format_key=format_key, title_hint=item.get("title", ""),
-            thumbnail_url=item.get("thumbnail_url", ""),
-            progress_hook=_progress_hook,
-        )
+        try:
+            r = download_single(
+                video_id=item["video_id"], platform=item["platform"],
+                format_key=format_key, title_hint=item.get("title", ""),
+                thumbnail_url=item.get("thumbnail_url", ""),
+                progress_hook=_progress_hook,
+            )
+        except Exception as e:
+            # download_single usually returns an error dict, but guard against
+            # anything raised before its try-block (e.g. an unknown platform) so
+            # the 'done' event — and thus the UI row — is ALWAYS emitted.
+            # Otherwise the row hangs at 0%% and the auto-clear (which fires when
+            # no row is marked failed) silently wipes the whole queue.
+            logger.error("download worker error for %s: %s", item.get("video_id"), e)
+            r = {"ok": False, "error": str(e)}
         cancelled = cancel.is_set() and not r["ok"]
         q.put({"type": "done", "index": i, "total": total,
                "ok": r["ok"], "title": item.get("title", ""),

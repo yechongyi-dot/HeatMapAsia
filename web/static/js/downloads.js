@@ -27,7 +27,7 @@ function run(items, format) {
       else if (d.type === 'progress') patch(d.index, { pct: d.pct, speed: d.speed, eta: d.eta });
       else if (d.type === 'done') {
         const status = d.ok ? 'done' : d.cancelled ? 'cancel' : 'fail';
-        patch(d.index, { status, pct: d.ok ? 100 : 0 });
+        patch(d.index, { status, pct: d.ok ? 100 : 0, error: d.error || '' });
       }
       else if (d.type === 'complete') {
         es.close();
