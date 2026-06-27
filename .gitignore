@@ -11,7 +11,7 @@ build/
 vendor_ffmpeg/
 
 # Release artifacts produced by scripts/release.py
-HeatMap-v*.zip
+HeatMap*-v*.zip
 
 # Database
 *.db
