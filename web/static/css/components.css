@@ -76,6 +76,15 @@
   transition: border-color .12s, color .12s, background .12s;
 }
 .ver-chip:hover { border-color: var(--bd2); color: var(--tx); background: var(--s2); }
+.ver-chip.has-update {
+  border-color: var(--gold); background: var(--gold); color: #161616; font-weight: 700;
+  animation: ver-pulse 1.8s ease-in-out infinite;
+}
+.ver-chip.has-update:hover { background: var(--gold2); color: #161616; }
+@keyframes ver-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240,185,11,.55); }
+  60%      { box-shadow: 0 0 0 5px rgba(240,185,11,0); }
+}
 
 /* ─── Update progress (inside the shared .dialog) ────── */
 .up-bar-wrap { height: 6px; background: var(--bd); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }

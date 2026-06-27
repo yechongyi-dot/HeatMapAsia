@@ -6,7 +6,7 @@ import { toast, Toasts } from './toast.js';
 import { ConfirmHost } from './confirm.js';
 import { useScrape, startScrape, autoScrape } from './scrape.js';
 import { setDrawerOpen } from './downloads.js';
-import { checkForUpdate } from './update.js';
+import { checkForUpdate, onVersionChipClick } from './update.js';
 import { TopBar } from './components/TopBar.js';
 import { DownloadDrawer } from './components/DownloadDrawer.js';
 import { UpdateModal } from './components/UpdateModal.js';
@@ -101,7 +101,7 @@ function App() {
       <${TopBar} view=${view} onView=${setView} onRefresh=${onRefresh} scrape=${scrape}
         region=${region} onRegion=${setRegion}
         saveDir=${saveDir} onOpenDir=${openSaveDir} onPickDir=${pickSaveDir}
-        appVersion=${appVersion} onCheckUpdate=${() => checkForUpdate(true)} />
+        appVersion=${appVersion} onCheckUpdate=${() => onVersionChipClick()} />
       ${activeView}
       <${DownloadDrawer} />
       <${UpdateModal} />
