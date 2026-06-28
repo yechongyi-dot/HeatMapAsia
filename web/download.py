@@ -71,6 +71,12 @@ QUALITY_FORMATS = {
 # How many videos to download at once in a batch (network-bound; yt-dlp releases
 # the GIL during I/O so threads give a near-linear speedup).
 DOWNLOAD_CONCURRENCY = 3
+# Hard cap on videos downloading at once across ALL batches. Each batch runs up
+# to DOWNLOAD_CONCURRENCY, but since batches now stack (you can queue more while
+# one is running), unbounded total concurrency would saturate bandwidth and risk
+# throttling — so a shared semaphore bounds the real simultaneous downloads.
+GLOBAL_DOWNLOAD_CONCURRENCY = 4
+_download_slots = threading.Semaphore(GLOBAL_DOWNLOAD_CONCURRENCY)
 # Parallel fragments per video (DASH/HLS) when not using an external downloader.
 FRAGMENT_CONCURRENCY = 4
 # aria2c gives multi-connection downloads (big win for large files). Used only
@@ -642,7 +648,6 @@ def start_download_job(items: list[dict], format_key: str) -> str:
             return
         # progress events carry the item index, so concurrent downloads
         # interleave safely on the single (thread-safe) queue.
-        q.put({"type": "start", "index": i, "total": total, "title": item.get("title", "")})
         last_pct = [-1]
 
         def _progress_hook(d, _i=i, _last=last_pct):
@@ -668,21 +673,31 @@ def start_download_job(items: list[dict], format_key: str) -> str:
                        "pct": round(pct, 1), "speed": (d.get("_speed_str") or "").strip(),
                        "eta": (d.get("_eta_str") or "").strip()})
 
+        # Wait for a global download slot (bounds total concurrency across all
+        # stacked batches); a queued item stays "等待中" until a slot frees up.
+        # 'start' is emitted only once we actually begin, so queued rows don't all
+        # show 0% at once.
+        _download_slots.acquire()
         try:
-            r = download_single(
-                video_id=item["video_id"], platform=item["platform"],
-                format_key=format_key, title_hint=item.get("title", ""),
-                thumbnail_url=item.get("thumbnail_url", ""),
-                progress_hook=_progress_hook,
-            )
-        except Exception as e:
-            # download_single usually returns an error dict, but guard against
-            # anything raised before its try-block (e.g. an unknown platform) so
-            # the 'done' event — and thus the UI row — is ALWAYS emitted.
-            # Otherwise the row hangs at 0%% and the auto-clear (which fires when
-            # no row is marked failed) silently wipes the whole queue.
-            logger.error("download worker error for %s: %s", item.get("video_id"), e)
-            r = {"ok": False, "error": str(e)}
+            if cancel.is_set():
+                r = {"ok": False, "error": "已取消"}
+            else:
+                q.put({"type": "start", "index": i, "total": total, "title": item.get("title", "")})
+                try:
+                    r = download_single(
+                        video_id=item["video_id"], platform=item["platform"],
+                        format_key=format_key, title_hint=item.get("title", ""),
+                        thumbnail_url=item.get("thumbnail_url", ""),
+                        progress_hook=_progress_hook,
+                    )
+                except Exception as e:
+                    # Guard against anything raised before download_single's own
+                    # try-block (e.g. an unknown platform) so the 'done' event —
+                    # and thus the UI row — is ALWAYS emitted.
+                    logger.error("download worker error for %s: %s", item.get("video_id"), e)
+                    r = {"ok": False, "error": str(e)}
+        finally:
+            _download_slots.release()
         cancelled = cancel.is_set() and not r["ok"]
         q.put({"type": "done", "index": i, "total": total,
                "ok": r["ok"], "title": item.get("title", ""),

@@ -20,8 +20,31 @@ JST = timezone(timedelta(hours=9))
 
 
 def init() -> None:
-    """Initialise database tables (idempotent)."""
+    """Initialise database tables (idempotent) and prune stale snapshots."""
     init_db()
+    prune_old()
+
+
+def prune_old(keep_days: int = 35) -> int:
+    """Delete ranked rows older than *keep_days* (across all regions).
+
+    The longest time window is 30d, so snapshots older than ~a month are never
+    shown — pruning them keeps the SQLite file from growing without bound and
+    keeps queries fast. Returns the number of rows deleted.
+    """
+    cutoff = (datetime.now(JST) - timedelta(days=keep_days)).strftime("%Y-%m-%d")
+    SessionLocal = get_session()
+    try:
+        with SessionLocal() as session:
+            with session.begin():
+                result = session.execute(delete(Video).where(Video.scraped_date < cutoff))
+            n = result.rowcount or 0
+        if n:
+            logger.info("Pruned %d ranked rows older than %s", n, cutoff)
+        return n
+    except SQLAlchemyError as e:
+        logger.error("prune_old: %s", e)
+        return 0
 
 
 def _parse_dt(raw: Optional[str]) -> Optional[datetime]:
