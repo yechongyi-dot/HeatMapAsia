@@ -140,29 +140,30 @@ def _parallel_search(
 
 
 def scrape_all_keywords(region: str = DEFAULT_REGION) -> list[dict]:
-    """Parallel keyword search with two-tier time filter.
+    """Parallel keyword search with a three-tier time filter.
 
-    Phase A: ``upload_date="today"`` → freshest 24 h content.
-    Phase B: ``upload_date="this_week"`` → broader 7 d coverage (every other keyword).
+    Phase A: ``upload_date="today"``      → freshest 24 h content (all keywords).
+    Phase B: ``upload_date="this_week"``  → 7 d coverage (every other keyword).
+    Phase C: ``upload_date="this_month"`` → fills the 7-30 d range the cumulative
+             30d window would otherwise miss (every third keyword, sparser).
     """
     keywords = get_region(region)["keywords"]
     all_videos: dict[str, dict] = {}
 
-    # Phase A: Today's content
-    logger.info("Phase A: upload_date=today")
-    today_results = _parallel_search(keywords, "today", YOUTUBE_WORKERS, "Today", region)
-    for v in today_results:
-        all_videos[v["video_id"]] = v
+    def _merge(results, label):
+        before = len(all_videos)
+        for v in results:
+            all_videos.setdefault(v["video_id"], v)
+        logger.info("%s added: %d new", label, len(all_videos) - before)
 
-    # Phase B: This week — sample every other keyword to save requests
-    week_keywords = keywords[::2]
-    logger.info("Phase B: upload_date=this_week (%d keywords)", len(week_keywords))
-    week_results = _parallel_search(week_keywords, "this_week", YOUTUBE_WORKERS, "Week", region)
-    before = len(all_videos)
-    for v in week_results:
-        if v["video_id"] not in all_videos:
-            all_videos[v["video_id"]] = v
-    logger.info("Phase B added: %d new", len(all_videos) - before)
+    logger.info("Phase A: upload_date=today (%d keywords)", len(keywords))
+    _merge(_parallel_search(keywords, "today", YOUTUBE_WORKERS, "Today", region), "Phase A")
+
+    logger.info("Phase B: upload_date=this_week (%d keywords)", len(keywords[::2]))
+    _merge(_parallel_search(keywords[::2], "this_week", YOUTUBE_WORKERS, "Week", region), "Phase B")
+
+    logger.info("Phase C: upload_date=this_month (%d keywords)", len(keywords[::3]))
+    _merge(_parallel_search(keywords[::3], "this_month", YOUTUBE_WORKERS, "Month", region), "Phase C")
 
     videos = list(all_videos.values())
     logger.info("YouTube keyword search total: %d", len(videos))

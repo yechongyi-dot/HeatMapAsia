@@ -170,6 +170,10 @@ _KR_OFFICIAL = [
     {"name": "삼프로TV",          "channel_id": "UChlv4GSd7OQl3js-jkLOnFA"},
     # 종합 경제(투자 외 시사도 있어 필터)
     {"name": "슈카월드",          "channel_id": "UCsJ6RuBiTVWRX156FVbeaGg", "filter": True},
+    # 경제 전문 방송 (활성, 재경 전문이라 신뢰)
+    {"name": "SBS Biz 뉴스",      "channel_id": "UCbMjg2EvXs_RUGW-KrdM3pw"},
+    {"name": "SBS Biz 증권",      "channel_id": "UCArMoa6lEdcDIsT7srY8YsA"},
+    {"name": "서울경제TV",         "channel_id": "UC3p-0EWA8OXko2EUDUXAy5w"},
 ]
 
 
