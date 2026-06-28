@@ -107,6 +107,13 @@ _JP_OFFICIAL = [
     # 综合新闻 / 政治为主（含非财经内容，需按关键词过滤）
     {"name": "ロイター日本",             "channel_id": "UCpC6ZVYT8-SxVb9zIcPDOTA", "filter": True},
     {"name": "首相官邸",                 "channel_id": "UCogK43-0HpBQXPahOswXJ0g", "filter": True},
+    # 証券会社（专注财经，不过滤）
+    {"name": "マネックス証券",           "channel_id": "UCTuTMd_xFwEhapfhv6kFDig"},
+    {"name": "日経ポッドキャスト",       "channel_id": "UCa5GTH97HPtpXNuysWvWL_A"},
+    # 経済・ビジネス動画メディア（一般ビジネス内容も含むため要フィルタ）
+    {"name": "PIVOT",                    "channel_id": "UC8yHePe_RgUBE-waRWy6olw", "filter": True},
+    {"name": "ReHacQ−リハック−",         "channel_id": "UCG_oqDSlIYEspNpd2H4zWhw", "filter": True},
+    {"name": "テレ東BIZ",                "channel_id": "UCkKVQ_GNjd8FbAuT6xDcWgg", "filter": True},
 ]
 
 
@@ -155,6 +162,15 @@ _KR_OFFICIAL = [
     {"name": "한국경제TV",         "channel_id": "UCF8AeLlUbEpKju6v1H6p8Eg"},
     {"name": "삼성증권",          "channel_id": "UCq7h8qFlHN5FL_T6waKZllw"},
     {"name": "미래에셋증권",       "channel_id": "UCz_eKjHcyxjfzaI_QDW8SXA"},
+    # 정부 금융감독 + 대형 증권사 + 인기 경제 미디어 (내용량 보강)
+    {"name": "금융감독원 FSS",     "channel_id": "UCjA-tHJ2xLwZRXzqXq0UaqA"},
+    {"name": "한국투자증권",       "channel_id": "UCh_9ffn36zS3HIQCwb3pgSQ"},
+    {"name": "NH투자증권",        "channel_id": "UCyG6uVh1TSceXgKK_zm3sAw"},
+    {"name": "키움증권",          "channel_id": "UCZW1d7B2nYqQUiTiOnkirrQ"},
+    {"name": "KB증권",           "channel_id": "UCD0k4Kq7SJROxxV-9N5v8IA"},
+    {"name": "삼프로TV",          "channel_id": "UChlv4GSd7OQl3js-jkLOnFA"},
+    # 종합 경제(투자 외 시사도 있어 필터)
+    {"name": "슈카월드",          "channel_id": "UCsJ6RuBiTVWRX156FVbeaGg", "filter": True},
 ]
 
 
@@ -199,6 +215,12 @@ _SG_OFFICIAL = [
     {"name": "The Business Times",              "channel_id": "UC0GP1HDhGZTLih7B89z_cTg", "filter": True},
     # general news (needs finance keyword filter)
     {"name": "CNA",                             "channel_id": "UC83jt4dlz1Gjl58fzQrrKZg", "filter": True},
+    # investing-focused media (trusted)
+    {"name": "Financial Horse",                 "channel_id": "UCnqHy45iqa9SQs94U03bmrg"},
+    {"name": "The Smart Investor",              "channel_id": "UC9VbZ3SVG48lg8Zw6H-XPaw"},
+    # general news / business radio (needs finance keyword filter)
+    {"name": "The Straits Times",               "channel_id": "UC4p_I9eiRewn2KoU-nawrDg", "filter": True},
+    {"name": "MONEY FM 89.3",                   "channel_id": "UCKQ_ev3_C_V0zPn-9PDrL4g", "filter": True},
 ]
 
 
