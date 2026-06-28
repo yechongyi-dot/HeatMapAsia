@@ -23,6 +23,7 @@ export function LibraryView({ saveDir }) {
   const [renaming, setRenaming] = useState(false);
   const [renameVal, setRenameVal] = useState('');
   const thumbTried = useRef(false);
+  const renameCancelled = useRef(false);
   const gridRef = useRef(null);
   const [showTop, setShowTop] = useState(false);
 
@@ -78,8 +79,11 @@ export function LibraryView({ saveDir }) {
     } catch { toast('删除失败', 'err'); }
   };
 
-  const startRename = () => { setRenameVal(sel.filename); setRenaming(true); };
+  const startRename = () => { renameCancelled.current = false; setRenameVal(sel.filename); setRenaming(true); };
+  const cancelRename = () => { renameCancelled.current = true; setRenaming(false); };
   const commitRename = async () => {
+    // Esc sets this flag then blurs the input (which re-triggers commit) — skip the save.
+    if (renameCancelled.current) { renameCancelled.current = false; setRenaming(false); return; }
     const next = renameVal.trim();
     setRenaming(false);
     if (!next || next === sel.filename) return;
@@ -170,13 +174,13 @@ export function LibraryView({ saveDir }) {
         </div>
         <${DetailPanel} sel=${sel} playing=${playing} setPlaying=${setPlaying}
           renaming=${renaming} renameVal=${renameVal} setRenameVal=${setRenameVal}
-          startRename=${startRename} commitRename=${commitRename}
+          startRename=${startRename} commitRename=${commitRename} cancelRename=${cancelRename}
           openFile=${openFile} delFile=${delFile} />
       </div>
     </section>`;
 }
 
-function DetailPanel({ sel, playing, setPlaying, renaming, renameVal, setRenameVal, startRename, commitRename, openFile, delFile }) {
+function DetailPanel({ sel, playing, setPlaying, renaming, renameVal, setRenameVal, startRename, commitRename, cancelRename, openFile, delFile }) {
   if (!sel) {
     return html`
       <aside class="lib-detail">
@@ -204,7 +208,7 @@ function DetailPanel({ sel, playing, setPlaying, renaming, renameVal, setRenameV
         ${renaming
           ? html`<input class="dp-rename" value=${renameVal} autofocus
                    onInput=${(e) => setRenameVal(e.target.value)}
-                   onKeyDown=${(e) => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') commitRename(); }}
+                   onKeyDown=${(e) => { if (e.key === 'Enter') commitRename(); else if (e.key === 'Escape') cancelRename(); }}
                    onBlur=${commitRename} />`
           : html`<div class="dp-fname" title="双击重命名" onDblClick=${startRename}>${sel.filename}</div>`}
         <div class="dp-meta">
