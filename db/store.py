@@ -125,15 +125,24 @@ def save_ranked_videos(
     return total
 
 
-def _latest_date(session, region: str, platform: str, window: str) -> Optional[str]:
-    """Return the most recent ``scraped_date`` for a region+platform+window, or ``None``."""
+# Time windows are STORED as mutually-exclusive age buckets, but the UI treats
+# them as "last N days" (cumulative): selecting 30d shows everything from the
+# last 30 days. So a query for `window` unions all buckets up to & including it.
+_WINDOW_ORDER = ["24h", "3d", "7d", "30d"]
+
+
+def _windows_upto(window: str) -> list[str]:
+    try:
+        return _WINDOW_ORDER[: _WINDOW_ORDER.index(window) + 1]
+    except ValueError:
+        return [window]
+
+
+def _latest_date(session, region: str, platform: str) -> Optional[str]:
+    """Most recent ``scraped_date`` for a region+platform (any window), or ``None``."""
     sub = (
         select(Video.scraped_date)
-        .where(
-            Video.region == region,
-            Video.platform == platform,
-            Video.time_window == window,
-        )
+        .where(Video.region == region, Video.platform == platform)
         .order_by(Video.scraped_date.desc())
         .limit(1)
     )
@@ -162,7 +171,7 @@ def get_videos(
     try:
         with SessionLocal() as session:
             if date is None:
-                date = _latest_date(session, region, platform, window)
+                date = _latest_date(session, region, platform)
                 if date is None:
                     return []
 
@@ -171,7 +180,7 @@ def get_videos(
                 .where(
                     Video.region == region,
                     Video.platform == platform,
-                    Video.time_window == window,
+                    Video.time_window.in_(_windows_upto(window)),
                     Video.scraped_date == date,
                 )
                 .order_by(Video.score.desc())
@@ -205,7 +214,7 @@ def get_channel_stats(
     try:
         with SessionLocal() as session:
             if date is None:
-                date = _latest_date(session, region, platform, window)
+                date = _latest_date(session, region, platform)
                 if date is None:
                     return []
 
@@ -222,7 +231,7 @@ def get_channel_stats(
                 .where(
                     Video.region == region,
                     Video.platform == platform,
-                    Video.time_window == window,
+                    Video.time_window.in_(_windows_upto(window)),
                     Video.scraped_date == date,
                 )
                 .group_by(Video.channel_id)
